@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Learn by Teaching</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            base: '#0B0F17',
+                            card: '#121824',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            hover: '#1a2234'
+                        },
+                        brand: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            accent: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #080C14;
+            color: #F1F5F9;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(18, 24, 36, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-nav {
+            background: rgba(11, 15, 23, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glow-indigo {
+            box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.3);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+        }
+        .glow-purple {
+            box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0b0f17; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Ambient Glowing Background Lights -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed top-1/3 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Floating Navigation Bar -->
+    <header class="glass-nav sticky top-0 z-40 py-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer group" onclick="switchTab('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-500 flex items-center justify-center text-white font-black text-lg shadow-lg glow-indigo group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-300">SkillSwap</span>
+                            <span class="text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">SaaS v2.0</span>
+                        </div>
+                        <span class="block text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Peer-to-Peer Learning Platform</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav Tabs -->
+                <nav class="hidden md:flex items-center bg-slate-900/60 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-sm"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('matches')" id="nav-matches" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-people-arrows text-sm"></i> Find Matches
+                    </button>
+                    <button onclick="switchTab('sessions')" id="nav-sessions" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 relative">
+                        <i class="fa-solid fa-calendar-check text-sm"></i> Requests
+                        <span id="pending-badge" class="hidden bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full shadow-sm">0</span>
+                    </button>
+                    <button onclick="switchTab('insights')" id="nav-insights" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-sm"></i> Demand Insights
+                    </button>
+                    <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-user text-sm"></i> Profile
+                    </button>
+                </nav>
+
+                <!-- Current User Profile Avatar -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <div id="header-user-name" class="text-xs font-bold text-slate-200">Alex Johnson</div>
+                        <div id="header-user-role" class="text-[10px] text-indigo-400 font-semibold tracking-wide">Pro Swap Member</div>
+                    </div>
+                    <div class="relative cursor-pointer group" onclick="switchTab('profile')">
+                        <img id="header-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Profile" class="w-10 h-10 rounded-xl border-2 border-indigo-500/50 object-cover shadow-md group-hover:border-indigo-400 transition">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-dark-base"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Nav Bar -->
+        <div class="md:hidden flex justify-around bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 py-2.5 fixed bottom-0 left-0 right-0 z-40">
+            <button onclick="switchTab('dashboard')" class="mobile-nav-btn text-[10px] font-bold flex flex-col items-center gap-1 text-slate-400" id="mob-dashboard">
+                <i class="fa-solid fa-chart-pie text-base"></i> Home
+            </button>
+            <button onclick="switchTab('matches')" class="mobile-nav-btn text-[10px] font-bold flex flex-col items-center gap-1 text-slate-400" id="mob-matches">
+                <i class="fa-solid fa-people-arrows text-base"></i> Matches
+            </button>
+            <button onclick="switchTab('sessions')" class="mobile-nav-btn text-[10px] font-bold flex flex-col items-center gap-1 text-slate-400 relative" id="mob-sessions">
+                <i class="fa-solid fa-calendar-check text-base"></i> Sessions
+            </button>
+            <button onclick="switchTab('insights')" class="mobile-nav-btn text-[10px] font-bold flex flex-col items-center gap-1 text-slate-400" id="mob-insights">
+                <i class="fa-solid fa-chart-line text-base"></i> Insights
+            </button>
+            <button onclick="switchTab('profile')" class="mobile-nav-btn text-[10px] font-bold flex flex-col items-center gap-1 text-slate-400" id="mob-profile">
+                <i class="fa-solid fa-user text-base"></i> Profile
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-10 relative z-10">
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <section id="tab-dashboard" class="tab-content space-y-8">
+            
+            <!-- Hero SaaS Banner -->
+            <div class="relative overflow-hidden rounded-3xl glass-card p-6 sm:p-10 border border-white/10 shadow-2xl">
+                <div class="relative z-10 max-w-3xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-semibold text-indigo-300 mb-4">
+                        <i class="fa-solid fa-sparkles text-amber-400"></i> AI-Powered Skill Matching Engine
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white mb-3">
+                        Welcome back, <span id="dash-greeting-name" class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">Alex</span>!
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base mb-8 leading-relaxed">
+                        Learn high-value skills directly from peers through 1-on-1 mutual exchanges. Teach what you excel at, gain what you aspire to learn.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="switchTab('matches')" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg glow-indigo flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Explore Mutual Matches
+                        </button>
+                        <button onclick="switchTab('profile')" class="px-6 py-3 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Add Skill Offers
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Decorative Light Blobs -->
+                <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            <!-- Stats Grid & Profile Completeness Ring -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                
+                <!-- Profile Completeness Card with Progress Ring -->
+                <div class="md:col-span-1 glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Profile Completeness</h3>
+                        <span id="dash-completeness-text" class="text-sm font-black text-indigo-400">85%</span>
+                    </div>
+
+                    <div class="flex items-center gap-4 py-2">
+                        <div class="relative w-16 h-16 flex-shrink-0">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="dash-progress-ring" class="text-indigo-500" stroke-width="3.5" stroke-dasharray="85, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center text-xs font-black text-white">
+                                <i class="fa-solid fa-user-check text-indigo-400"></i>
+                            </div>
+                        </div>
+                        <p id="dash-completeness-tip" class="text-xs text-slate-400 leading-snug">
+                            Add bio & availability slots to boost your match priority by 2x!
+                        </p>
+                    </div>
+
+                    <button onclick="switchTab('profile')" class="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition">
+                        Manage Profile Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+
+                <!-- Stat 1: Hours Taught -->
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold shadow-sm">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div>
+                        <div id="dash-hours-taught" class="text-2xl font-black text-white">14.5 hrs</div>
+                        <div class="text-xs font-medium text-slate-400">Total Hours Taught</div>
+                    </div>
+                </div>
+
+                <!-- Stat 2: Hours Learned -->
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl font-bold shadow-sm">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div id="dash-hours-learned" class="text-2xl font-black text-white">18.0 hrs</div>
+                        <div class="text-xs font-medium text-slate-400">Total Hours Learned</div>
+                    </div>
+                </div>
+
+                <!-- Stat 3: Rating -->
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold shadow-sm">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span id="dash-rating-avg" class="text-2xl font-black text-white">4.9</span>
+                            <span class="text-xs text-slate-500">/ 5.0</span>
+                        </div>
+                        <div class="text-xs font-medium text-slate-400"><span id="dash-rating-count">12</span> Peer Reviews</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Mutual Matches & Upcoming Sessions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Mutual Matches Highlights -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 sm:p-8 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-400"></i> Top Mutual Matches
+                            </h2>
+                            <p class="text-xs text-slate-400">Direct 2-way learning opportunities with high match ratings</p>
+                        </div>
+                        <button onclick="switchTab('matches')" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition">View All Matches →</button>
+                    </div>
+
+                    <div id="dash-mutual-list" class="space-y-4">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Upcoming Sessions Column -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-4">
+                            <i class="fa-solid fa-calendar-day text-indigo-400"></i> Upcoming Sessions
+                        </h2>
+                        
+                        <div id="dash-upcoming-sessions" class="space-y-3">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-800">
+                        <button onclick="switchTab('sessions')" class="w-full py-3 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-bold rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            Manage All Sessions <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 2: FIND MATCHES ================= -->
+        <section id="tab-matches" class="tab-content hidden space-y-8">
+            
+            <!-- Controls Header -->
+            <div class="glass-card p-6 sm:p-8 rounded-2xl space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-black text-white">Find Skill Swap Partners</h1>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Filter by direct mutual matches, 3-way swap chains, or one-way mentors.</p>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative min-w-[280px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                        <input type="text" id="match-search-input" onkeyup="filterMatches()" placeholder="Search skills e.g. React, UI Design..." class="w-full pl-11 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                    </div>
+                </div>
+
+                <!-- Match Filters Pill Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setMatchTypeFilter('all')" id="filter-btn-all" class="match-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm">
+                            All Matches
+                        </button>
+                        <button onclick="setMatchTypeFilter('mutual')" id="filter-btn-mutual" class="match-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                            🔥 Mutual (2-Way)
+                        </button>
+                        <button onclick="setMatchTypeFilter('threeway')" id="filter-btn-threeway" class="match-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                            🔄 3-Way Chains
+                        </button>
+                        <button onclick="setMatchTypeFilter('oneway')" id="filter-btn-oneway" class="match-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                            🎓 Mentors (One-Way)
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-semibold">Skill Level:</span>
+                        <select id="level-filter-select" onchange="filterMatches()" class="bg-slate-900/90 border border-slate-800 text-xs text-slate-200 font-semibold rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500">
+                            <option value="all">All Levels</option>
+                            <option value="Expert">Expert</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Beginner">Beginner</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matches Cards Grid -->
+            <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically Populated Card Items -->
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 3: REQUESTS & SESSIONS ================= -->
+        <section id="tab-sessions" class="tab-content hidden space-y-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-black text-white">Sessions & Exchanges</h1>
+                    <p class="text-slate-400 text-xs sm:text-sm">Manage pending booking invitations, scheduled meetings, and session ratings.</p>
+                </div>
+                <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+                    <button onclick="switchSessionSubTab('pending')" id="subtab-pending" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm">Pending</button>
+                    <button onclick="switchSessionSubTab('upcoming')" id="subtab-upcoming" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white">Upcoming</button>
+                    <button onclick="switchSessionSubTab('completed')" id="subtab-completed" class="px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white">History & Ratings</button>
+                </div>
+            </div>
+
+            <!-- Sub Tab 1: Pending -->
+            <div id="session-container-pending" class="space-y-4"></div>
+
+            <!-- Sub Tab 2: Upcoming -->
+            <div id="session-container-upcoming" class="hidden space-y-4"></div>
+
+            <!-- Sub Tab 3: Completed & Ratings -->
+            <div id="session-container-completed" class="hidden space-y-4"></div>
+        </section>
+
+
+        <!-- ================= TAB 4: DEMAND INSIGHTS ================= -->
+        <section id="tab-insights" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl">
+                <h1 class="text-2xl font-black text-white">Skill Demand & Supply Analytics</h1>
+                <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Real-time breakdown of skills requested versus offered across the community.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Bar Comparison Area -->
+                <div class="lg:col-span-2 glass-card p-6 sm:p-8 rounded-2xl space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                        <h2 class="font-bold text-white text-base">Community Skills Comparison</h2>
+                        <div class="flex items-center gap-4 text-xs font-medium">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Wanted (Learners)</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Offered (Teachers)</span>
+                        </div>
+                    </div>
+
+                    <div id="demand-bars-container" class="space-y-6">
+                        <!-- Dynamic Charts -->
+                    </div>
+                </div>
+
+                <!-- Summary Analytics -->
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-2xl border border-indigo-500/20 relative overflow-hidden">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-bolt text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm">High Demand Alert</h3>
+                                <p class="text-xs text-indigo-400 font-semibold">Great teaching opportunity</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            Skills like <strong class="text-white">UI Design</strong> and <strong class="text-white">Python</strong> currently have 3x more learners than teachers available.
+                        </p>
+                        <button onclick="switchTab('profile')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition shadow-md glow-indigo">
+                            Add These Skills to Your Profile
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-white text-sm border-b border-slate-800 pb-2">Network Statistics</h3>
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-400">Total Registered Skills</span>
+                            <span id="stat-total-skills-count" class="font-bold text-white">42</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-400">Average Match Score</span>
+                            <span class="font-bold text-emerald-400">88%</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-slate-400">Active Swap Ratio</span>
+                            <span class="font-bold text-indigo-400">1:1 Balanced</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 5: MY PROFILE ================= -->
+        <section id="tab-profile" class="tab-content hidden space-y-8">
+            <div class="glass-card p-6 sm:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-black text-white">My Profile & Skill Portfolio</h1>
+                    <p class="text-slate-400 text-xs sm:text-sm">Manage your teachable skills, learning goals, and meeting availability.</p>
+                </div>
+                <button onclick="saveUserProfile()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg glow-indigo flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left: Basic Info & Availability -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h2 class="font-bold text-white text-sm border-b border-slate-800 pb-3">Basic Info</h2>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                            <input type="text" id="profile-name-input" class="w-full px-3.5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-white font-semibold focus:outline-none focus:border-indigo-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Short Bio</label>
+                            <textarea id="profile-bio-input" rows="3" class="w-full px-3.5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-200 font-normal focus:outline-none focus:border-indigo-500" placeholder="Brief intro about yourself..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Availability Selection -->
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <h2 class="font-bold text-white text-sm border-b border-slate-800 pb-3">Availability Slots</h2>
+                        <p class="text-xs text-slate-400">Select days you can hold swap sessions:</p>
+
+                        <div id="availability-checkboxes" class="grid grid-cols-2 gap-2 text-xs font-semibold">
+                            <!-- Dynamic -->
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Preferred Window</label>
+                            <select id="profile-time-slot" class="w-full px-3 py-2.5 bg-slate-900/90 border border-slate-800 text-xs text-slate-200 font-medium rounded-xl focus:outline-none focus:border-indigo-500">
+                                <option value="Evenings (5 PM - 9 PM)">Evenings (5 PM - 9 PM)</option>
+                                <option value="Mornings (8 AM - 12 PM)">Mornings (8 AM - 12 PM)</option>
+                                <option value="Afternoons (12 PM - 5 PM)">Afternoons (12 PM - 5 PM)</option>
+                                <option value="Flexible / Weekends">Flexible / Weekends</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Skills Offered & Wanted -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Skills Offered -->
+                    <div class="glass-card p-6 sm:p-8 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                            <div>
+                                <h2 class="font-bold text-white text-base">Skills You Offer (To Teach)</h2>
+                                <p class="text-xs text-slate-400">What expertise can you share with peers?</p>
+                            </div>
+                            <button onclick="openAddSkillModal('offer')" class="px-3.5 py-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Add Skill
+                            </button>
+                        </div>
+
+                        <div id="profile-offered-skills-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+
+                    <!-- Skills Wanted -->
+                    <div class="glass-card p-6 sm:p-8 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                            <div>
+                                <h2 class="font-bold text-white text-base">Skills You Want (To Learn)</h2>
+                                <p class="text-xs text-slate-400">Which skills are you actively seeking mentors for?</p>
+                            </div>
+                            <button onclick="openAddSkillModal('want')" class="px-3.5 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Add Skill
+                            </button>
+                        </div>
+
+                        <div id="profile-wanted-skills-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Booking Modal -->
+    <div id="modal-booking" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h3 class="font-extrabold text-white text-lg">Request Swap Session</h3>
+                <button onclick="closeModal('modal-booking')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="booking-partner-summary" class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+                <!-- Dynamic Partner details -->
+            </div>
+
+            <form id="booking-form" onsubmit="handleSendBookingRequest(event)" class="space-y-4">
+                <input type="hidden" id="booking-partner-id">
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Day</label>
+                    <select id="booking-day" required class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-indigo-500">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Time</label>
+                    <input type="time" id="booking-time" required value="17:00" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Session Notes / Plan</label>
+                    <textarea id="booking-notes" rows="3" required placeholder="e.g. Let's discuss React State Hooks & Figma Auto Layout..." class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-booking')" class="w-1/2 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition">Cancel</button>
+                    <button type="submit" class="w-1/2 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg glow-indigo">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Add Skill Modal -->
+    <div id="modal-add-skill" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="glass-card rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-800 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="add-skill-modal-title" class="font-extrabold text-white text-base">Add Skill</h3>
+                <button onclick="closeModal('modal-add-skill')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="add-skill-form" onsubmit="handleAddSkillSubmit(event)" class="space-y-4">
+                <input type="hidden" id="add-skill-type">
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Skill Name</label>
+                    <input type="text" id="add-skill-name" required placeholder="e.g. Python, Graphic Design, Spanish" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Skill Proficiency Level</label>
+                    <select id="add-skill-level" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-indigo-500">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-add-skill')" class="w-1/2 py-2.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md glow-indigo">Add Skill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Rating Modal -->
+    <div id="modal-rating" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="glass-card rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-800 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-white text-base">Rate Peer Session</h3>
+                <button onclick="closeModal('modal-rating')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="rating-form" onsubmit="handleRatingSubmit(event)" class="space-y-4">
+                <input type="hidden" id="rating-session-id">
+
+                <div class="text-center py-2">
+                    <p id="rating-partner-name" class="text-sm font-bold text-white mb-2">Alex Johnson</p>
+                    <div class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer" id="star-rating-picker">
+                        <i class="fa-solid fa-star star-btn" onclick="setRatingStars(1)"></i>
+                        <i class="fa-solid fa-star star-btn" onclick="setRatingStars(2)"></i>
+                        <i class="fa-solid fa-star star-btn" onclick="setRatingStars(3)"></i>
+                        <i class="fa-solid fa-star star-btn" onclick="setRatingStars(4)"></i>
+                        <i class="fa-solid fa-star star-btn" onclick="setRatingStars(5)"></i>
+                    </div>
+                    <input type="hidden" id="selected-star-val" value="5">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Feedback / Review</label>
+                    <textarea id="rating-review-text" rows="3" required placeholder="Great session! Clear explanations and very helpful..." class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeModal('modal-rating')" class="w-1/2 py-2.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md">Submit Rating</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        const defaultCurrentUser = {
+            id: 'user_current',
+            name: "Alex Johnson",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150",
+            bio: "Full Stack Development student passionate about UI design and learning conversational Spanish.",
+            availability: ["Monday", "Wednesday", "Friday", "Saturday"],
+            timeSlot: "Evenings (5 PM - 9 PM)",
+            offeredSkills: [
+                { name: "JavaScript", level: "Expert" },
+                { name: "React JS", level: "Intermediate" },
+                { name: "HTML & CSS", level: "Expert" }
+            ],
+            wantedSkills: [
+                { name: "UI Design", level: "Beginner" },
+                { name: "Spanish", level: "Beginner" },
+                { name: "Python", level: "Intermediate" }
+            ],
+            hoursTaught: 14.5,
+            hoursLearned: 18.0,
+            rating: 4.9,
+            reviewsCount: 12
+        };
+
+        const defaultPeerUsers = [
+            {
+                id: 'user_1',
+                name: "Sophia Chen",
+                avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+                bio: "UX Designer with 3 years experience. Looking to improve coding and web script logic.",
+                availability: ["Monday", "Wednesday", "Saturday"],
+                timeSlot: "Evenings (5 PM - 9 PM)",
+                offeredSkills: [
+                    { name: "UI Design", level: "Expert" },
+                    { name: "Figma", level: "Expert" }
+                ],
+                wantedSkills: [
+                    { name: "JavaScript", level: "Beginner" },
+                    { name: "React JS", level: "Beginner" }
+                ],
+                rating: 5.0,
+                reviewsCount: 18
+            },
+            {
+                id: 'user_2',
+                name: "Marcus Vance",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
+                bio: "Native Spanish speaker & Data Scientist. Want to learn frontend frameworks.",
+                availability: ["Tuesday", "Thursday", "Sunday"],
+                timeSlot: "Mornings (8 AM - 12 PM)",
+                offeredSkills: [
+                    { name: "Spanish", level: "Expert" },
+                    { name: "Python", level: "Expert" }
+                ],
+                wantedSkills: [
+                    { name: "React JS", level: "Beginner" },
+                    { name: "HTML & CSS", level: "Intermediate" }
+                ],
+                rating: 4.8,
+                reviewsCount: 9
+            },
+            {
+                id: 'user_3',
+                name: "David Kim",
+                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150",
+                bio: "Music producer & Video Editor. Eager to pick up Python automation skills.",
+                availability: ["Wednesday", "Friday", "Sunday"],
+                timeSlot: "Afternoons (12 PM - 5 PM)",
+                offeredSkills: [
+                    { name: "Video Editing", level: "Expert" },
+                    { name: "Guitar", level: "Intermediate" }
+                ],
+                wantedSkills: [
+                    { name: "Python", level: "Beginner" }
+                ],
+                rating: 4.7,
+                reviewsCount: 15
+            },
+            {
+                id: 'user_4',
+                name: "Elena Rostova",
+                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150",
+                bio: "Python developer who wants to learn Video Editing for YouTube tutorials.",
+                availability: ["Friday", "Saturday", "Sunday"],
+                timeSlot: "Flexible / Weekends",
+                offeredSkills: [
+                    { name: "Python", level: "Expert" }
+                ],
+                wantedSkills: [
+                    { name: "Video Editing", level: "Beginner" }
+                ],
+                rating: 4.9,
+                reviewsCount: 22
+            }
+        ];
+
+        const defaultSessions = [
+            {
+                id: 'sess_1',
+                partnerId: 'user_1',
+                partnerName: "Sophia Chen",
+                partnerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+                youTeach: "JavaScript",
+                youLearn: "UI Design",
+                day: "Wednesday",
+                time: "18:00",
+                status: "upcoming",
+                notes: "Introductory session covering JS Functions and Figma Auto Layout."
+            },
+            {
+                id: 'sess_2',
+                partnerId: 'user_2',
+                partnerName: "Marcus Vance",
+                partnerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
+                youTeach: "React JS",
+                youLearn: "Spanish",
+                day: "Thursday",
+                time: "10:00",
+                status: "pending",
+                notes: "Practicing Spanish conversation and React State hook."
+            },
+            {
+                id: 'sess_3',
+                partnerId: 'user_3',
+                partnerName: "David Kim",
+                partnerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150",
+                youTeach: "HTML & CSS",
+                youLearn: "Guitar",
+                day: "Last Week",
+                time: "14:00",
+                status: "completed",
+                notes: "Completed basic chords and CSS Flexbox grid layout.",
+                rated: true,
+                stars: 5,
+                review: "Awesome teacher, explained flexbox so clearly!"
+            }
+        ];
+
+        let currentUser = JSON.parse(localStorage.getItem('ss_currentUser')) || defaultCurrentUser;
+        let peerUsers = JSON.parse(localStorage.getItem('ss_peerUsers')) || defaultPeerUsers;
+        let sessions = JSON.parse(localStorage.getItem('ss_sessions')) || defaultSessions;
+
+        let activeTab = 'dashboard';
+        let matchFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHeaderAndProfileInfo();
+            renderDashboard();
+            renderMatches();
+            renderSessions();
+            renderDemandInsights();
+            renderProfileTab();
+            updatePendingBadge();
+            switchTab('dashboard');
+        });
+
+        function saveState() {
+            localStorage.setItem('ss_currentUser', JSON.stringify(currentUser));
+            localStorage.setItem('ss_peerUsers', JSON.stringify(peerUsers));
+            localStorage.setItem('ss_sessions', JSON.stringify(sessions));
+            
+            renderHeaderAndProfileInfo();
+            renderDashboard();
+            renderMatches();
+            renderSessions();
+            renderDemandInsights();
+            renderProfileTab();
+            updatePendingBadge();
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'glow-indigo');
+                btn.classList.add('text-slate-400', 'hover:text-white');
+            });
+            const activeNavBtn = document.getElementById(`nav-${tabId}`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'glow-indigo');
+                activeNavBtn.classList.remove('text-slate-400', 'hover:text-white');
+            }
+
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.replace('text-indigo-400', 'text-slate-400'));
+            const activeMobBtn = document.getElementById(`mob-${tabId}`);
+            if (activeMobBtn) activeMobBtn.classList.replace('text-slate-400', 'text-indigo-400');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderHeaderAndProfileInfo() {
+            document.getElementById('header-user-name').innerText = currentUser.name;
+            document.getElementById('header-user-avatar').src = currentUser.avatar;
+            document.getElementById('dash-greeting-name').innerText = currentUser.name.split(' ')[0];
+        }
+
+        function calculateCompleteness() {
+            let score = 0;
+            if (currentUser.name) score += 20;
+            if (currentUser.bio) score += 20;
+            if (currentUser.offeredSkills.length > 0) score += 25;
+            if (currentUser.wantedSkills.length > 0) score += 25;
+            if (currentUser.availability.length > 0) score += 10;
+            return Math.min(100, score);
+        }
+
+        function renderDashboard() {
+            const completeness = calculateCompleteness();
+            document.getElementById('dash-completeness-text').innerText = `${completeness}%`;
+            
+            const ring = document.getElementById('dash-progress-ring');
+            if(ring) ring.setAttribute('stroke-dasharray', `${completeness}, 100`);
+
+            document.getElementById('dash-hours-taught').innerText = `${currentUser.hoursTaught.toFixed(1)} hrs`;
+            document.getElementById('dash-hours-learned').innerText = `${currentUser.hoursLearned.toFixed(1)} hrs`;
+            document.getElementById('dash-rating-avg').innerText = currentUser.rating.toFixed(1);
+            document.getElementById('dash-rating-count').innerText = currentUser.reviewsCount;
+
+            const mutualContainer = document.getElementById('dash-mutual-list');
+            const matches = getCalculatedMatches().filter(m => m.type === 'mutual');
+
+            if (matches.length === 0) {
+                mutualContainer.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No exact mutual matches found right now. Try adding more skills!</p>`;
+            } else {
+                mutualContainer.innerHTML = matches.slice(0, 3).map(m => `
+                    <div class="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 hover:border-slate-700 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${m.user.avatar}" class="w-11 h-11 rounded-xl object-cover border border-slate-700">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-white text-sm">${m.user.name}</h4>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${m.score}% Match</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5 leading-snug">${m.explanation}</p>
+                            </div>
+                        </div>
+                        <button onclick="openBookingModal('${m.user.id}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition shadow-md glow-indigo w-full sm:w-auto text-center">
+                            Request Swap
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const upcomingContainer = document.getElementById('dash-upcoming-sessions');
+            const upcomingList = sessions.filter(s => s.status === 'upcoming');
+
+            if (upcomingList.length === 0) {
+                upcomingContainer.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No upcoming sessions scheduled.</p>`;
+            } else {
+                upcomingContainer.innerHTML = upcomingList.slice(0, 2).map(s => `
+                    <div class="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/20 flex items-center gap-3">
+                        <img src="${s.partnerAvatar}" class="w-9 h-9 rounded-xl object-cover">
+                        <div class="flex-grow min-w-0">
+                            <h5 class="text-xs font-bold text-white truncate">${s.partnerName}</h5>
+                            <p class="text-[10px] text-indigo-400 font-semibold truncate"><i class="fa-solid fa-clock text-[9px]"></i> ${s.day} @ ${s.time}</p>
+                            <span class="text-[10px] text-slate-400 block truncate">Teach ${s.youTeach} ↔ Learn ${s.youLearn}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getCalculatedMatches() {
+            let matches = [];
+
+            peerUsers.forEach(peer => {
+                const canTeachYou = peer.offeredSkills.filter(offered => 
+                    currentUser.wantedSkills.some(w => w.name.toLowerCase() === offered.name.toLowerCase())
+                );
+
+                const youCanTeachPeer = currentUser.offeredSkills.filter(offered =>
+                    peer.wantedSkills.some(w => w.name.toLowerCase() === offered.name.toLowerCase())
+                );
+
+                if (canTeachYou.length > 0 && youCanTeachPeer.length > 0) {
+                    const teachSkill = youCanTeachPeer[0].name;
+                    const learnSkill = canTeachYou[0].name;
+                    matches.push({
+                        type: 'mutual',
+                        score: 98,
+                        user: peer,
+                        teachSkill,
+                        learnSkill,
+                        explanation: `Mutual Swap: You teach ${teachSkill} & learn ${learnSkill}!`
+                    });
+                } else if (canTeachYou.length > 0) {
+                    const learnSkill = canTeachYou[0].name;
+                    matches.push({
+                        type: 'oneway',
+                        score: 75,
+                        user: peer,
+                        learnSkill,
+                        explanation: `Mentor Match: ${peer.name.split(' ')[0]} can mentor you in ${learnSkill}.`
+                    });
+                }
+            });
+
+            for (let b of peerUsers) {
+                const aTeachesB = currentUser.offeredSkills.filter(s => b.wantedSkills.some(w => w.name.toLowerCase() === s.name.toLowerCase()));
+                if (aTeachesB.length === 0) continue;
+
+                for (let c of peerUsers) {
+                    if (c.id === b.id) continue;
+
+                    const bTeachesC = b.offeredSkills.filter(s => c.wantedSkills.some(w => w.name.toLowerCase() === s.name.toLowerCase()));
+                    const cTeachesA = c.offeredSkills.filter(s => currentUser.wantedSkills.some(w => w.name.toLowerCase() === s.name.toLowerCase()));
+
+                    if (bTeachesC.length > 0 && cTeachesA.length > 0) {
+                        const alreadyInMatches = matches.some(m => m.type === 'threeway' && m.user.id === b.id);
+                        if (!alreadyInMatches) {
+                            matches.push({
+                                type: 'threeway',
+                                score: 90,
+                                user: b,
+                                chainPartner: c,
+                                teachSkill: aTeachesB[0].name,
+                                bTeachesC: bTeachesC[0].name,
+                                learnSkill: cTeachesA[0].name,
+                                explanation: `3-Way Swap Chain: You ➔ ${b.name.split(' ')[0]} ➔ ${c.name.split(' ')[0]} ➔ You!`
+                            });
+                        }
+                    }
+                }
+            }
+
+            return matches;
+        }
+
+        function renderMatches() {
+            const container = document.getElementById('matches-grid');
+            let allMatches = getCalculatedMatches();
+
+            const query = document.getElementById('match-search-input')?.value.toLowerCase() || '';
+            const levelFilter = document.getElementById('level-filter-select')?.value || 'all';
+
+            let filtered = allMatches.filter(m => {
+                if (matchFilter !== 'all' && m.type !== matchFilter) return false;
+
+                const searchTxt = `${m.user.name} ${m.user.offeredSkills.map(s=>s.name).join(' ')} ${m.user.wantedSkills.map(s=>s.name).join(' ')}`.toLowerCase();
+                if (query && !searchTxt.includes(query)) return false;
+
+                if (levelFilter !== 'all') {
+                    const hasLevel = m.user.offeredSkills.some(s => s.level === levelFilter);
+                    if (!hasLevel) return false;
+                }
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center glass-card rounded-2xl">
+                        <i class="fa-solid fa-user-slash text-4xl text-slate-600 mb-3"></i>
+                        <h3 class="font-bold text-white text-base">No matching partners found</h3>
+                        <p class="text-xs text-slate-400 mt-1">Try adjusting search filters or adding skills to your profile.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(m => `
+                <div class="glass-card rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/40 transition duration-300 group">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${m.user.avatar}" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                                <div>
+                                    <h3 class="font-bold text-white text-sm group-hover:text-indigo-300 transition">${m.user.name}</h3>
+                                    <div class="flex items-center gap-1 text-xs text-amber-400 font-semibold">
+                                        <i class="fa-solid fa-star"></i> ${m.user.rating.toFixed(1)} <span class="text-slate-500">(${m.user.reviewsCount})</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-xl text-[11px] font-black ${
+                                m.type === 'mutual' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                m.type === 'threeway' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+                            }">
+                                ${m.score}% Match
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-slate-300 line-clamp-2 mb-4 leading-relaxed">${m.user.bio}</p>
+
+                        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 mb-4">
+                            <span class="text-[9px] font-black uppercase tracking-wider block mb-1 ${
+                                m.type === 'mutual' ? 'text-emerald-400' : m.type === 'threeway' ? 'text-purple-400' : 'text-sky-400'
+                            }">${m.type === 'mutual' ? '🔥 Mutual Direct Swap' : m.type === 'threeway' ? '🔄 3-Way Chain Match' : '🎓 Mentor Partner'}</span>
+                            <p class="text-xs font-medium text-slate-300 leading-snug">${m.explanation}</p>
+                        </div>
+
+                        <div class="space-y-3 mb-4">
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teaches:</span>
+                                <div class="flex flex-wrap gap-1.5 mt-1">
+                                    ${m.user.offeredSkills.map(s => `<span class="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-200 rounded-lg text-[11px] font-semibold">${s.name} <span class="text-[9px] text-indigo-400">(${s.level})</span></span>`).join('')}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Wants to learn:</span>
+                                <div class="flex flex-wrap gap-1.5 mt-1">
+                                    ${m.user.wantedSkills.map(s => `<span class="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-300 rounded-lg text-[11px] font-semibold">${s.name}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                        <div class="text-[11px] text-slate-400">
+                            <i class="fa-solid fa-calendar-days text-slate-500"></i> ${m.user.availability.slice(0, 2).join(', ')}
+                        </div>
+                        <button onclick="openBookingModal('${m.user.id}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition shadow-md glow-indigo">
+                            Connect & Swap
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setMatchTypeFilter(type) {
+            matchFilter = type;
+            document.querySelectorAll('.match-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-slate-900', 'text-slate-400');
+            });
+            const btn = document.getElementById(`filter-btn-${type}`);
+            if (btn) {
+                btn.classList.add('bg-indigo-600', 'text-white');
+                btn.classList.remove('bg-slate-900', 'text-slate-400');
+            }
+            renderMatches();
+        }
+
+        function filterMatches() {
+            renderMatches();
+        }
+
+        function renderSessions() {
+            const pendingContainer = document.getElementById('session-container-pending');
+            const upcomingContainer = document.getElementById('session-container-upcoming');
+            const completedContainer = document.getElementById('session-container-completed');
+
+            const pendingList = sessions.filter(s => s.status === 'pending');
+            const upcomingList = sessions.filter(s => s.status === 'upcoming');
+            const completedList = sessions.filter(s => s.status === 'completed');
+
+            if (pendingList.length === 0) {
+                pendingContainer.innerHTML = `<div class="glass-card p-8 text-center rounded-2xl text-xs text-slate-500">No pending session invitations.</div>`;
+            } else {
+                pendingContainer.innerHTML = pendingList.map(s => `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${s.partnerAvatar}" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${s.partnerName}</h4>
+                                <p class="text-xs text-slate-400 font-medium mt-0.5">Topic: ${s.notes}</p>
+                                <span class="text-[11px] text-indigo-400 font-bold mt-1 block"><i class="fa-solid fa-clock"></i> Proposed: ${s.day} @ ${s.time}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="handleSessionAction('${s.id}', 'decline')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs transition flex-1 sm:flex-none">Decline</button>
+                            <button onclick="handleSessionAction('${s.id}', 'accept')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition flex-1 sm:flex-none shadow-md glow-indigo">Accept Request</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (upcomingList.length === 0) {
+                upcomingContainer.innerHTML = `<div class="glass-card p-8 text-center rounded-2xl text-xs text-slate-500">No scheduled upcoming sessions.</div>`;
+            } else {
+                upcomingContainer.innerHTML = upcomingList.map(s => `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${s.partnerAvatar}" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-white text-sm">${s.partnerName}</h4>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Confirmed</span>
+                                </div>
+                                <p class="text-xs text-slate-300 mt-1">Teaching <strong class="text-white">${s.youTeach}</strong> ↔ Learning <strong class="text-white">${s.youLearn}</strong></p>
+                                <span class="text-[11px] text-indigo-400 font-bold mt-1 block"><i class="fa-solid fa-calendar"></i> ${s.day} @ ${s.time}</span>
+                            </div>
+                        </div>
+                        <button onclick="handleSessionAction('${s.id}', 'complete')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition shadow-md glow-emerald w-full sm:w-auto">
+                            Mark Completed
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            if (completedList.length === 0) {
+                completedContainer.innerHTML = `<div class="glass-card p-8 text-center rounded-2xl text-xs text-slate-500">No completed session history.</div>`;
+            } else {
+                completedContainer.innerHTML = completedList.map(s => `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${s.partnerAvatar}" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${s.partnerName}</h4>
+                                <p class="text-xs text-slate-400">Exchanged ${s.youTeach} & ${s.youLearn} (1 hr)</p>
+                                ${s.rated ? `
+                                    <div class="flex items-center gap-1 text-amber-400 text-xs mt-1">
+                                        ${'<i class="fa-solid fa-star"></i>'.repeat(s.stars)}
+                                        <span class="text-slate-300 text-[11px] font-medium ml-1">"${s.review}"</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div>
+                            ${!s.rated ? `
+                                <button onclick="openRatingModal('${s.id}', '${s.partnerName}')" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold text-xs transition shadow-md w-full sm:w-auto">
+                                    Rate Peer
+                                </button>
+                            ` : `<span class="text-xs font-bold text-slate-500 px-3 py-1 bg-slate-900 rounded-lg border border-slate-800">Reviewed</span>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function switchSessionSubTab(sub) {
+            document.getElementById('session-container-pending').classList.add('hidden');
+            document.getElementById('session-container-upcoming').classList.add('hidden');
+            document.getElementById('session-container-completed').classList.add('hidden');
+
+            document.getElementById(`session-container-${sub}`).classList.remove('hidden');
+
+            document.getElementById('subtab-pending').className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('subtab-upcoming').className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('subtab-completed').className = "px-4 py-2 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white";
+
+            document.getElementById(`subtab-${sub}`).className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm";
+        }
+
+        function handleSessionAction(sessionId, action) {
+            const index = sessions.findIndex(s => s.id === sessionId);
+            if (index === -1) return;
+
+            if (action === 'accept') {
+                sessions[index].status = 'upcoming';
+                showToast("Request Accepted! Meeting added to upcoming schedule.", "success");
+            } else if (action === 'decline') {
+                sessions.splice(index, 1);
+                showToast("Request declined.", "info");
+            } else if (action === 'complete') {
+                sessions[index].status = 'completed';
+                currentUser.hoursTaught += 1.0;
+                currentUser.hoursLearned += 1.0;
+                showToast("Session completed! 1.0 hr added to stats.", "success");
+            }
+
+            saveState();
+        }
+
+        function updatePendingBadge() {
+            const count = sessions.filter(s => s.status === 'pending').length;
+            const badge = document.getElementById('pending-badge');
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderDemandInsights() {
+            const container = document.getElementById('demand-bars-container');
+            const skillCounts = {};
+
+            const addSkill = (name, type) => {
+                const key = name.trim();
+                if (!skillCounts[key]) skillCounts[key] = { wanted: 0, offered: 0 };
+                if (type === 'wanted') skillCounts[key].wanted++;
+                if (type === 'offered') skillCounts[key].offered++;
+            };
+
+            currentUser.offeredSkills.forEach(s => addSkill(s.name, 'offered'));
+            currentUser.wantedSkills.forEach(s => addSkill(s.name, 'wanted'));
+
+            peerUsers.forEach(p => {
+                p.offeredSkills.forEach(s => addSkill(s.name, 'offered'));
+                p.wantedSkills.forEach(s => addSkill(s.name, 'wanted'));
+            });
+
+            const skillArray = Object.keys(skillCounts).map(k => ({
+                name: k,
+                wanted: skillCounts[k].wanted,
+                offered: skillCounts[k].offered,
+                total: skillCounts[k].wanted + skillCounts[k].offered
+            })).sort((a, b) => b.total - a.total);
+
+            document.getElementById('stat-total-skills-count').innerText = Object.keys(skillCounts).length;
+
+            const maxCount = Math.max(...skillArray.map(s => Math.max(s.wanted, s.offered)), 1);
+
+            container.innerHTML = skillArray.map(s => {
+                const wantedWidth = (s.wanted / maxCount) * 100;
+                const offeredWidth = (s.offered / maxCount) * 100;
+
+                return `
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-white">
+                            <span>${s.name}</span>
+                            <span class="text-slate-400 font-medium">${s.wanted} Wanted / ${s.offered} Offered</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${wantedWidth}%"></div>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="bg-emerald-400 h-2 rounded-full transition-all duration-500" style="width: ${offeredWidth}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProfileTab() {
+            document.getElementById('profile-name-input').value = currentUser.name;
+            document.getElementById('profile-bio-input').value = currentUser.bio;
+            document.getElementById('profile-time-slot').value = currentUser.timeSlot;
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            const daysContainer = document.getElementById('availability-checkboxes');
+            daysContainer.innerHTML = days.map(day => `
+                <label class="flex items-center gap-2 p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl cursor-pointer hover:bg-slate-800/60 transition">
+                    <input type="checkbox" value="${day}" ${currentUser.availability.includes(day) ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded focus:ring-0 accent-indigo-600">
+                    <span class="text-slate-300 text-xs font-medium">${day}</span>
+                </label>
+            `).join('');
+
+            const offeredContainer = document.getElementById('profile-offered-skills-list');
+            if (currentUser.offeredSkills.length === 0) {
+                offeredContainer.innerHTML = `<p class="text-xs text-slate-500">No skills added to teach yet.</p>`;
+            } else {
+                offeredContainer.innerHTML = currentUser.offeredSkills.map((s, idx) => `
+                    <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-white text-xs">${s.name}</h4>
+                            <span class="text-[10px] text-indigo-400 font-semibold">${s.level}</span>
+                        </div>
+                        <button onclick="removeSkill('offer', ${idx})" class="text-slate-500 hover:text-rose-400 text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
+
+            const wantedContainer = document.getElementById('profile-wanted-skills-list');
+            if (currentUser.wantedSkills.length === 0) {
+                wantedContainer.innerHTML = `<p class="text-xs text-slate-500">No skills added to learn yet.</p>`;
+            } else {
+                wantedContainer.innerHTML = currentUser.wantedSkills.map((s, idx) => `
+                    <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-white text-xs">${s.name}</h4>
+                            <span class="text-[10px] text-emerald-400 font-semibold">${s.level}</span>
+                        </div>
+                        <button onclick="removeSkill('want', ${idx})" class="text-slate-500 hover:text-rose-400 text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function saveUserProfile() {
+            currentUser.name = document.getElementById('profile-name-input').value.trim() || currentUser.name;
+            currentUser.bio = document.getElementById('profile-bio-input').value.trim();
+            currentUser.timeSlot = document.getElementById('profile-time-slot').value;
+
+            const selectedDays = [];
+            document.querySelectorAll('#availability-checkboxes input[type="checkbox"]:checked').forEach(cb => {
+                selectedDays.push(cb.value);
+            });
+            currentUser.availability = selectedDays;
+
+            saveState();
+            showToast("Profile updated successfully!", "success");
+        }
+
+        function removeSkill(type, index) {
+            if (type === 'offer') currentUser.offeredSkills.splice(index, 1);
+            if (type === 'want') currentUser.wantedSkills.splice(index, 1);
+            saveState();
+            showToast("Skill removed", "info");
+        }
+
+        function openBookingModal(partnerId) {
+            const partner = peerUsers.find(p => p.id === partnerId);
+            if (!partner) return;
+
+            document.getElementById('booking-partner-id').value = partner.id;
+            
+            const summary = document.getElementById('booking-partner-summary');
+            summary.innerHTML = `
+                <img src="${partner.avatar}" class="w-10 h-10 rounded-xl object-cover border border-slate-700">
+                <div>
+                    <h4 class="font-bold text-white text-sm">${partner.name}</h4>
+                    <p class="text-xs text-slate-400">Available: ${partner.availability.join(', ')}</p>
+                </div>
+            `;
+
+            const daySelect = document.getElementById('booking-day');
+            daySelect.innerHTML = partner.availability.map(d => `<option value="${d}">${d}</option>`).join('');
+
+            document.getElementById('modal-booking').classList.remove('hidden');
+        }
+
+        function handleSendBookingRequest(e) {
+            e.preventDefault();
+            const partnerId = document.getElementById('booking-partner-id').value;
+            const partner = peerUsers.find(p => p.id === partnerId);
+
+            const day = document.getElementById('booking-day').value;
+            const time = document.getElementById('booking-time').value;
+            const notes = document.getElementById('booking-notes').value;
+
+            sessions.unshift({
+                id: `sess_${Date.now()}`,
+                partnerId: partner.id,
+                partnerName: partner.name,
+                partnerAvatar: partner.avatar,
+                youTeach: currentUser.offeredSkills[0]?.name || "Expertise",
+                youLearn: partner.offeredSkills[0]?.name || "Skill Swap",
+                day: day,
+                time: time,
+                status: "pending",
+                notes: notes
+            });
+
+            closeModal('modal-booking');
+            saveState();
+            showToast("Swap invitation sent to " + partner.name + "!", "success");
+            switchTab('sessions');
+        }
+
+        function openAddSkillModal(type) {
+            document.getElementById('add-skill-type').value = type;
+            document.getElementById('add-skill-modal-title').innerText = type === 'offer' ? "Add Skill to Teach" : "Add Skill to Learn";
+            document.getElementById('add-skill-name').value = '';
+            document.getElementById('modal-add-skill').classList.remove('hidden');
+        }
+
+        function handleAddSkillSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('add-skill-type').value;
+            const name = document.getElementById('add-skill-name').value.trim();
+            const level = document.getElementById('add-skill-level').value;
+
+            if (!name) return;
+
+            if (type === 'offer') {
+                currentUser.offeredSkills.push({ name, level });
+            } else {
+                currentUser.wantedSkills.push({ name, level });
+            }
+
+            closeModal('modal-add-skill');
+            saveState();
+            showToast(`Added ${name} (${level})`, "success");
+        }
+
+        function openRatingModal(sessionId, partnerName) {
+            document.getElementById('rating-session-id').value = sessionId;
+            document.getElementById('rating-partner-name').innerText = partnerName;
+            document.getElementById('rating-review-text').value = '';
+            setRatingStars(5);
+            document.getElementById('modal-rating').classList.remove('hidden');
+        }
+
+        function setRatingStars(starCount) {
+            document.getElementById('selected-star-val').value = starCount;
+            const stars = document.querySelectorAll('.star-btn');
+            stars.forEach((s, idx) => {
+                if (idx < starCount) {
+                    s.className = "fa-solid fa-star star-btn text-amber-400";
+                } else {
+                    s.className = "fa-regular fa-star star-btn text-slate-600";
+                }
+            });
+        }
+
+        function handleRatingSubmit(e) {
+            e.preventDefault();
+            const sessionId = document.getElementById('rating-session-id').value;
+            const stars = parseInt(document.getElementById('selected-star-val').value);
+            const review = document.getElementById('rating-review-text').value;
+
+            const index = sessions.findIndex(s => s.id === sessionId);
+            if (index !== -1) {
+                sessions[index].rated = true;
+                sessions[index].stars = stars;
+                sessions[index].review = review;
+            }
+
+            closeModal('modal-rating');
+            saveState();
+            showToast("Rating submitted!", "success");
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-indigo-600' : 'bg-slate-800';
+
+            toast.className = `${bgColor} text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 transform transition-all duration-300 pointer-events-auto opacity-0 translate-y-2 border border-white/10`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i> ${message}`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
